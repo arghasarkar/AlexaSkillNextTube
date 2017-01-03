@@ -1,6 +1,8 @@
 exports.handler = (event, context, callback) => {
     const https = require("https");
 
+    const plurals = require("./utils/lang/plurals");
+
     const API_HOST = "api.tfl.gov.uk";
     const STATION_RAYNERS_LANE = "940GZZLURYL";
     const API_PATH = "/StopPoint/" + STATION_RAYNERS_LANE + "/arrivals";
@@ -102,14 +104,16 @@ exports.handler = (event, context, callback) => {
         if (typeof direction === "undefined") { direction = "Eastbound"; }
         if (typeof lineName === "undefined") { lineName = "Metropolitan"; }
 
-        const NUM_TRAINS = "There are currently " + parsedTubeData.eastboundTrains.length
-            + " train going in the " + direction + " direction.\n";
+        const numOfTrains = parsedTubeData.eastboundTrains.length;
+
+        const NUM_TRAINS = "There " + plurals.plural("is", numOfTrains) + " currently "
+            + numOfTrains + " " + plurals.plural("train", numOfTrains) + " going in the " + direction + " direction.\n";
 
         const TIME_TILL_NEXT_TRAIN = "Your next train is in ";
-        const AFTER_NEXT_TRAINS = "Trains after your next ones are in ";
+        const AFTER_NEXT_TRAINS = plurals.plural("Train", numOfTrains, 2) +  " after your next one"  + " "
+            + plurals.plural("is", numOfTrains, 2) + " in ";
 
         var phraseText = NUM_TRAINS;
-
         if (parsedTubeData.eastboundTrains.length > 0) {
             phraseText += TIME_TILL_NEXT_TRAIN + parsedTubeData.eastboundTrains[0].timeToStation + ". \n";
         }
@@ -122,6 +126,7 @@ exports.handler = (event, context, callback) => {
 
         return phraseText;
     }
+
     try {
 
         if (event.session.new) {
