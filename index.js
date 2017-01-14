@@ -3,12 +3,13 @@ exports.handler = (event, context, callback) => {
 
     const plurals = require("./utils/lang/plurals");
 
+    const Warbands = require('./subskills/Runescape/Warbands');
+
     const API_HOST = "api.tfl.gov.uk";
     const STATION_RAYNERS_LANE = "940GZZLURYL";
     const API_PATH = "/StopPoint/" + STATION_RAYNERS_LANE + "/arrivals";
 
     var dataLoadedCallback = function(data) {
-        //console.log("Data:", JSON.stringify(data));
 
         var traintimesByDirection = parseTrainTimesByDirection(data);
 
@@ -32,6 +33,27 @@ exports.handler = (event, context, callback) => {
             });
         });
     }
+
+    /**
+     * Fetches the tube times data for Rayners lane and creates the speechlet for Alexa. Called when the "NextTube"
+     * intent is triggered.
+     */
+    function tubeTimeIntent() {
+        loadHttps(API_HOST, API_PATH, function(data) {
+
+            var traintimesByDirection = parseTrainTimesByDirection(data);
+            var phraseText = nextTubePhraseBuilder(traintimesByDirection);
+
+            context.succeed(
+                generateResponse(
+                    buildSpeechletResponse(phraseText, true),
+                    {}
+                )
+            );
+        });
+    }
+
+
 
     /**
      * Parses the train times json to get the eastbound and the west bound Metropolitan line services
@@ -127,6 +149,11 @@ exports.handler = (event, context, callback) => {
         return phraseText;
     }
 
+    /**
+     * MAIN
+     * This is where a request comes in from AlexaSkillService to be parsed.
+     * App launcher and all INTENT requests are handled here.
+     */
     try {
 
         if (event.session.new) {
@@ -138,38 +165,39 @@ exports.handler = (event, context, callback) => {
             case "LaunchRequest": {
                 // Launch request
                 console.log("Launch request");
-               /* context.succeed(
-                    generateResponse(
-                        buildSpeechletResponse("Welcome to Alexa skill", true),
-                        {}
-                    )
-                );*/
-
-                loadHttps(API_HOST, API_PATH, function(data) {
-
-                    var traintimesByDirection = parseTrainTimesByDirection(data);
-                    var phraseText = nextTubePhraseBuilder(traintimesByDirection);
-
-                    context.succeed(
-                        generateResponse(
-                            buildSpeechletResponse(phraseText, true),
-                            {}
-                        )
-                    );
-                });
-
+                tubeTimeIntent();
                 break;
             }
 
             case "IntentRequest": {
                 // Intent reqeust
                 console.log("Intent request");
-                context.succeed(
-                    generateResponse(
-                        buildSpeechletResponse("Welcome to Alexa skill", true),
-                        {}
-                    )
-                );
+                console.log(event.request.intent.name);
+
+                switch (event.request.intent.name) {
+                    case "NextTube": {
+                        tubeTimeIntent();
+                        break;
+                    }
+                    case "WarbandsTime": {
+                        context.succeed(
+                             generateResponse(
+                                 buildSpeechletResponse(Warbands.timeToNextWarbands(), true),
+                                 {}
+                             )
+                         );
+                        break;
+                    }
+                    default: {
+                        context.succeed(
+                            generateResponse(
+                                buildSpeechletResponse("Failed intent", true),
+                                {}
+                            )
+                        );
+                    }
+                }
+
                 break;
             }
 
