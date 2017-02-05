@@ -1,0 +1,10 @@
+{
+    "intents": [
+    {
+        "intent": "NextTube"
+    },
+    {
+        "intent": "WarbandsTime"
+    }
+]
+}
