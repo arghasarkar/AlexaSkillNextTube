@@ -9,6 +9,8 @@ exports.handler = (event, context, callback) => {
     const STATION_RAYNERS_LANE = "940GZZLURYL";
     const API_PATH = "/StopPoint/" + STATION_RAYNERS_LANE + "/arrivals";
 
+    const TUBE_LINE = "Piccadilly";
+
     var dataLoadedCallback = function(data) {
 
         var traintimesByDirection = parseTrainTimesByDirection(data);
@@ -56,14 +58,14 @@ exports.handler = (event, context, callback) => {
 
 
     /**
-     * Parses the train times json to get the eastbound and the west bound Metropolitan line services
+     * Parses the train times json to get the eastbound and the west bound Piccadilly line services
      * @param trainTimesJson
      * @param direction
      * @param lineName
      */
     function parseTrainTimesByDirection(trainTimesJson, direction, lineName) {
         if (typeof direction === "undefined") { direction = "Eastbound"; }
-        if (typeof lineName === "undefined") { lineName = "Metropolitan"; }
+        if (typeof lineName === "undefined") { lineName = TUBE_LINE; }
 
         const EASTBOUND = "Eastbound";
         const WESTBOUND = "Westbound";
@@ -124,7 +126,7 @@ exports.handler = (event, context, callback) => {
 
     function nextTubePhraseBuilder(parsedTubeData, direction, line) {
         if (typeof direction === "undefined") { direction = "Eastbound"; }
-        if (typeof lineName === "undefined") { lineName = "Metropolitan"; }
+        if (typeof lineName === "undefined") { lineName = TUBE_LINE; }
 
         const numOfTrains = parsedTubeData.eastboundTrains.length;
 
